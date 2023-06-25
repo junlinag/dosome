@@ -1,1 +1,35 @@
+name: Test
 
+on:
+  push:
+    branches: ["main"]
+  pull_request: {}
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Cache golang modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go
+          key: ${{ runner.os }}-go-v1
+          restore-keys: |
+            ${{ runner.os }}-go-
+      
+      - name: Install golang deps
+        run: go get neilpa.me/yajsv
+
+      - name: Install python deps
+        run: pip install eth_utils pycryptodome
+
+      - name: Test
+        run: scripts/test.sh
+        env:
+          GIT_BASE: ${{ github.event.pull_request.base.sha }}
